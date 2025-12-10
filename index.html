@@ -3,19 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pantone 色号识别器</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>Pantone Picker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-card: #1a1a25;
-            --text-primary: #f0f0f5;
-            --text-secondary: #8a8a9a;
-            --accent: #ff6b35;
-            --accent-glow: rgba(255, 107, 53, 0.3);
-            --success: #4ade80;
-            --border: #2a2a3a;
+            --bg-primary: #191a1f;
+            --bg-secondary: #1e1f25;
+            --bg-card: #252730;
+            --bg-elevated: #2d2f3a;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+            --accent: #8b5cf6;
+            --accent-hover: #a78bfa;
+            --accent-subtle: rgba(139, 92, 246, 0.15);
+            --success: #34d399;
+            --success-subtle: rgba(52, 211, 153, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
         }
 
         * {
@@ -25,184 +36,213 @@
         }
 
         body {
-            font-family: 'Noto Sans SC', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            overflow-x: hidden;
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Background Effect */
-        .bg-grid {
+        /* Navigation */
+        nav {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(255, 107, 53, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 107, 53, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .bg-glow {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            filter: blur(100px);
-            opacity: 0.5;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .bg-glow-1 { top: -200px; left: -200px; }
-        .bg-glow-2 { bottom: -200px; right: -200px; background: radial-gradient(circle, rgba(74, 222, 128, 0.2) 0%, transparent 70%); }
-
-        /* Header */
-        header {
-            position: relative;
-            z-index: 10;
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .logo {
-            font-family: 'Space Mono', monospace;
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -2px;
-            background: linear-gradient(135deg, var(--accent) 0%, #ff9f6b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Main Container */
-        .container {
-            position: relative;
-            z-index: 10;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 2rem;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Upload Area */
-        .upload-section {
-            background: var(--bg-card);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .upload-header {
-            padding: 1.5rem;
+            right: 0;
+            height: 64px;
+            background: rgba(25, 26, 31, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
         }
 
-        .upload-header h2 {
-            font-size: 1.1rem;
-            font-weight: 500;
+        .nav-brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 12px;
         }
 
-        .upload-header h2::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent) 0%, #ec4899 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .upload-area {
-            position: relative;
-            min-height: 400px;
+        .nav-logo .material-icons-round {
+            font-size: 20px;
+            color: white;
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .nav-subtitle {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Main Layout */
+        main {
+            padding-top: 64px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+        }
+
+        .workspace {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 40px;
+            gap: 24px;
+        }
+
+        .sidebar {
+            width: 380px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid var(--border);
+            }
+        }
+
+        /* Upload Card */
+        .upload-card {
+            width: 100%;
+            max-width: 720px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        .upload-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        .upload-area {
+            position: relative;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .upload-area.dragover {
-            background: rgba(255, 107, 53, 0.1);
+            background: var(--accent-subtle);
         }
 
         .upload-area.has-image {
-            padding: 1rem;
+            padding: 16px;
             cursor: default;
+            min-height: auto;
         }
 
-        .upload-icon {
-            width: 80px;
-            height: 80px;
-            border: 2px dashed var(--border);
-            border-radius: 20px;
+        .upload-icon-wrapper {
+            width: 88px;
+            height: 88px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-xl);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
             transition: all 0.3s ease;
         }
 
-        .upload-area:hover .upload-icon {
-            border-color: var(--accent);
+        .upload-area:hover .upload-icon-wrapper {
+            background: var(--accent-subtle);
             transform: scale(1.05);
         }
 
-        .upload-icon svg {
-            width: 32px;
-            height: 32px;
-            stroke: var(--text-secondary);
+        .upload-icon-wrapper .material-icons-round {
+            font-size: 36px;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
         }
 
-        .upload-text {
+        .upload-area:hover .upload-icon-wrapper .material-icons-round {
+            color: var(--accent);
+        }
+
+        .upload-content {
             text-align: center;
         }
 
-        .upload-text h3 {
-            font-size: 1.2rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+        .upload-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
         }
 
-        .upload-text p {
+        .upload-subtitle {
+            font-size: 14px;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            line-height: 1.6;
         }
 
-        .upload-text span {
+        .upload-subtitle span {
             color: var(--accent);
             font-weight: 500;
+        }
+
+        .upload-hint {
+            margin-top: 24px;
+            padding: 12px 20px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-lg);
+            font-size: 13px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-hint .material-icons-round {
+            font-size: 18px;
+            color: var(--accent);
         }
 
         #fileInput {
@@ -223,20 +263,20 @@
         #imageCanvas {
             width: 100%;
             height: auto;
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
             cursor: crosshair;
         }
 
         .zoom-indicator {
             position: absolute;
-            width: 120px;
-            height: 120px;
-            border: 3px solid var(--accent);
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--accent);
             border-radius: 50%;
             pointer-events: none;
             display: none;
             overflow: hidden;
-            box-shadow: 0 0 20px var(--accent-glow);
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
         }
 
         .zoom-indicator.visible {
@@ -254,8 +294,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
         }
 
         .zoom-crosshair::before,
@@ -279,56 +319,68 @@
             transform: translateY(-50%);
         }
 
-        /* Instructions */
-        .instructions {
-            padding: 1rem 1.5rem;
-            background: rgba(255, 107, 53, 0.1);
-            border-top: 1px solid var(--border);
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+        /* Instructions Bar */
+        .instructions-bar {
+            padding: 16px 20px;
+            background: var(--accent-subtle);
             display: none;
-        }
-
-        .instructions.visible {
-            display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--accent-hover);
+            font-weight: 500;
         }
 
-        .instructions svg {
-            width: 16px;
-            height: 16px;
-            stroke: var(--accent);
-            flex-shrink: 0;
-        }
-
-        /* Sidebar */
-        .sidebar {
+        .instructions-bar.visible {
             display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
         }
 
-        /* Color Preview Card */
-        .color-card {
+        .instructions-bar .material-icons-round {
+            font-size: 18px;
+        }
+
+        /* Sidebar Sections */
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+        }
+
+        /* Color Preview */
+        .color-preview-card {
             background: var(--bg-card);
-            border-radius: 20px;
+            border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             overflow: hidden;
         }
 
-        .color-preview {
-            height: 160px;
-            background: var(--bg-secondary);
-            position: relative;
+        .color-preview-swatch {
+            height: 140px;
+            background: var(--bg-elevated);
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         .color-preview-placeholder {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-tertiary);
+        }
+
+        .color-preview-placeholder .material-icons-round {
+            font-size: 32px;
+            opacity: 0.5;
+        }
+
+        .color-preview-placeholder span {
+            font-size: 13px;
         }
 
         .color-swatch {
@@ -341,175 +393,264 @@
             display: block;
         }
 
-        .color-info {
-            padding: 1.5rem;
+        .color-info-grid {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
-        .color-info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
+        .color-info-item {
+            background: var(--bg-elevated);
+            padding: 12px;
+            border-radius: var(--radius-md);
         }
 
-        .color-info-row:last-child {
-            border-bottom: none;
+        .color-info-item.full-width {
+            grid-column: span 2;
         }
 
         .color-info-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
         }
 
         .color-info-value {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.95rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
             font-weight: 500;
         }
 
-        .color-info-value.pantone {
+        .color-info-value.highlight {
             color: var(--accent);
-            font-size: 1.1rem;
+            font-size: 16px;
         }
 
-        /* Pantone Results */
-        .pantone-results {
+        /* Results List */
+        .results-card {
             background: var(--bg-card);
-            border-radius: 20px;
+            border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             overflow: hidden;
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .results-header {
-            padding: 1.5rem;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
-        }
-
-        .results-header h3 {
-            font-size: 1rem;
-            font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: space-between;
         }
 
-        .results-header h3::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
+        .results-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .results-header-title .material-icons-round {
+            font-size: 18px;
+            color: var(--success);
         }
 
         .results-list {
-            max-height: 400px;
+            flex: 1;
             overflow-y: auto;
         }
 
         .results-list::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
 
         .results-list::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
+            background: transparent;
         }
 
         .results-list::-webkit-scrollbar-thumb {
             background: var(--border);
-            border-radius: 3px;
+            border-radius: 2px;
         }
 
         .result-item {
             display: flex;
             align-items: center;
-            padding: 1rem 1.5rem;
-            gap: 1rem;
+            padding: 14px 20px;
+            gap: 14px;
             border-bottom: 1px solid var(--border);
-            transition: background 0.2s ease;
             cursor: pointer;
+            transition: background 0.15s ease;
         }
 
         .result-item:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--bg-elevated);
         }
 
         .result-item:last-child {
             border-bottom: none;
         }
 
-        .result-color {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+        .result-swatch {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow);
         }
 
-        .result-info {
+        .result-details {
             flex: 1;
+            min-width: 0;
         }
 
         .result-name {
+            font-size: 14px;
             font-weight: 500;
-            margin-bottom: 0.25rem;
-            font-size: 0.95rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .result-code {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
-        .result-delta {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            padding: 0.25rem 0.5rem;
-            background: var(--bg-secondary);
-            border-radius: 6px;
+        .result-badge {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-elevated);
+            color: var(--text-tertiary);
         }
 
-        .result-delta.excellent {
+        .result-badge.excellent {
+            background: var(--success-subtle);
             color: var(--success);
-            background: rgba(74, 222, 128, 0.1);
         }
 
-        .no-results {
-            padding: 3rem 1.5rem;
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
             text-align: center;
+        }
+
+        .empty-state .material-icons-round {
+            font-size: 48px;
+            color: var(--border);
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        /* History Section */
+        .history-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: none;
+        }
+
+        .history-card.visible {
+            display: block;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .history-header h4 {
+            font-size: 12px;
+            font-weight: 500;
             color: var(--text-secondary);
         }
 
-        .no-results svg {
-            width: 48px;
-            height: 48px;
-            stroke: var(--border);
-            margin-bottom: 1rem;
+        .history-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .history-item {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-item:hover {
+            transform: scale(1.15);
         }
 
         /* Buttons */
         .btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            outline: none;
         }
 
-        .btn svg {
-            width: 16px;
-            height: 16px;
+        .btn .material-icons-round {
+            font-size: 18px;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: var(--radius-md);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .btn-subtle {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .btn-subtle:hover {
+            background: var(--border-hover);
         }
 
         .btn-primary {
@@ -518,68 +659,16 @@
         }
 
         .btn-primary:hover {
-            background: #ff8555;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border);
-        }
-
-        /* History */
-        .history-section {
-            background: var(--bg-card);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .history-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .history-header h3 {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .history-colors {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 1rem;
-            gap: 0.5rem;
-        }
-
-        .history-item {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .history-item:hover {
-            transform: scale(1.1);
+            background: var(--accent-hover);
         }
 
         /* Loading */
         .loading {
             display: none;
+            flex: 1;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 40px;
         }
 
         .loading.visible {
@@ -587,180 +676,199 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border: 3px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        /* Footer */
-        footer {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            border-top: 1px solid var(--border);
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 200;
         }
 
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
+        .toast.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast .material-icons-round {
+            font-size: 18px;
+            color: var(--success);
         }
 
         /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .fade-in {
-            animation: fadeIn 0.3s ease forwards;
+            animation: fadeIn 0.25s ease forwards;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .logo {
-                font-size: 1.8rem;
+            nav {
+                padding: 0 16px;
             }
 
-            .container {
-                padding: 1rem;
+            .workspace {
+                padding: 24px 16px;
+            }
+
+            .sidebar {
+                padding: 20px 16px;
             }
 
             .upload-area {
-                min-height: 300px;
+                padding: 32px 24px;
+                min-height: 320px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="bg-grid"></div>
-    <div class="bg-glow bg-glow-1"></div>
-    <div class="bg-glow bg-glow-2"></div>
-
-    <header>
-        <h1 class="logo">PANTONE PICKER</h1>
-        <p class="subtitle">图片颜色 → Pantone 色号识别器</p>
-    </header>
-
-    <main class="container">
-        <section class="upload-section">
-            <div class="upload-header">
-                <h2>图片上传</h2>
-                <button class="btn btn-secondary" id="resetBtn" style="display: none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                    </svg>
-                    重新上传
-                </button>
+    <nav>
+        <div class="nav-brand">
+            <div class="nav-logo">
+                <span class="material-icons-round">colorize</span>
             </div>
+            <div>
+                <div class="nav-title">Pantone Picker</div>
+                <div class="nav-subtitle">Color Recognition Tool</div>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-ghost btn-icon" id="resetBtn" style="display: none;" title="Reset">
+                <span class="material-icons-round">refresh</span>
+            </button>
+        </div>
+    </nav>
 
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                </div>
-                <div class="upload-text">
-                    <h3>拖放图片到此处</h3>
-                    <p>或 <span>点击选择文件</span></p>
-                </div>
-                <input type="file" id="fileInput" accept="image/*">
+    <main>
+        <div class="workspace">
+            <div class="upload-card">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon-wrapper">
+                        <span class="material-icons-round">add_photo_alternate</span>
+                    </div>
+                    <div class="upload-content">
+                        <h2 class="upload-title">Upload an image</h2>
+                        <p class="upload-subtitle">
+                            Drag and drop or <span>browse files</span>
+                        </p>
+                    </div>
+                    <div class="upload-hint">
+                        <span class="material-icons-round">lightbulb</span>
+                        Click anywhere on the image to pick colors
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*">
 
-                <div class="canvas-container" id="canvasContainer">
-                    <canvas id="imageCanvas"></canvas>
-                    <div class="zoom-indicator" id="zoomIndicator">
-                        <canvas id="zoomCanvas" width="120" height="120"></canvas>
-                        <div class="zoom-crosshair"></div>
+                    <div class="canvas-container" id="canvasContainer">
+                        <canvas id="imageCanvas"></canvas>
+                        <div class="zoom-indicator" id="zoomIndicator">
+                            <canvas id="zoomCanvas" width="100" height="100"></canvas>
+                            <div class="zoom-crosshair"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="instructions" id="instructions">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                点击图片任意位置获取该位置的 Pantone 色号
+                <div class="instructions-bar" id="instructions">
+                    <span class="material-icons-round">touch_app</span>
+                    Click on the image to identify Pantone colors
+                </div>
             </div>
-        </section>
+        </div>
 
         <aside class="sidebar">
-            <div class="color-card">
-                <div class="color-preview" id="colorPreview">
-                    <span class="color-preview-placeholder">选取颜色后显示</span>
-                    <div class="color-swatch" id="colorSwatch"></div>
-                </div>
-                <div class="color-info">
-                    <div class="color-info-row">
-                        <span class="color-info-label">Pantone</span>
-                        <span class="color-info-value pantone" id="pantoneValue">--</span>
+            <div>
+                <div class="section-title">Selected Color</div>
+                <div class="color-preview-card">
+                    <div class="color-preview-swatch" id="colorPreview">
+                        <div class="color-preview-placeholder">
+                            <span class="material-icons-round">palette</span>
+                            <span>No color selected</span>
+                        </div>
+                        <div class="color-swatch" id="colorSwatch"></div>
                     </div>
-                    <div class="color-info-row">
-                        <span class="color-info-label">HEX</span>
-                        <span class="color-info-value" id="hexValue">--</span>
-                    </div>
-                    <div class="color-info-row">
-                        <span class="color-info-label">RGB</span>
-                        <span class="color-info-value" id="rgbValue">--</span>
-                    </div>
-                    <div class="color-info-row">
-                        <span class="color-info-label">色差 ΔE</span>
-                        <span class="color-info-value" id="deltaValue">--</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pantone-results">
-                <div class="results-header">
-                    <h3>最接近的 Pantone 色</h3>
-                </div>
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                </div>
-                <div class="results-list" id="resultsList">
-                    <div class="no-results">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M8 15h8"/>
-                            <circle cx="9" cy="9" r="1"/>
-                            <circle cx="15" cy="9" r="1"/>
-                        </svg>
-                        <p>上传图片并点击取色</p>
+                    <div class="color-info-grid">
+                        <div class="color-info-item full-width">
+                            <div class="color-info-label">Pantone</div>
+                            <div class="color-info-value highlight" id="pantoneValue">--</div>
+                        </div>
+                        <div class="color-info-item">
+                            <div class="color-info-label">HEX</div>
+                            <div class="color-info-value" id="hexValue">--</div>
+                        </div>
+                        <div class="color-info-item">
+                            <div class="color-info-label">RGB</div>
+                            <div class="color-info-value" id="rgbValue">--</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="history-section" id="historySection" style="display: none;">
+            <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                <div class="section-title">Closest Matches</div>
+                <div class="results-card">
+                    <div class="results-header">
+                        <div class="results-header-title">
+                            <span class="material-icons-round">check_circle</span>
+                            Top 5 Results
+                        </div>
+                    </div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="results-list" id="resultsList">
+                        <div class="empty-state">
+                            <span class="material-icons-round">image_search</span>
+                            <p>Upload an image and click to pick colors</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-card" id="historySection">
                 <div class="history-header">
-                    <h3>历史记录</h3>
-                    <button class="btn btn-secondary" id="clearHistory" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">清除</button>
+                    <h4>Recent Colors</h4>
+                    <button class="btn btn-ghost" id="clearHistory" style="padding: 6px 10px; font-size: 12px;">Clear</button>
                 </div>
                 <div class="history-colors" id="historyColors"></div>
             </div>
         </aside>
     </main>
 
-    <footer>
-        <p>基于 CIEDE2000 颜色差异算法 · 包含 2000+ 种 Pantone 颜色</p>
-    </footer>
+    <div class="toast" id="toast">
+        <span class="material-icons-round">check_circle</span>
+        <span id="toastText">Copied to clipboard</span>
+    </div>
 
     <script>
-        // ========================================
-        // Pantone Color Database (Partial - 500+ colors for demo)
-        // ========================================
+        // Pantone Color Database
         const PANTONE_COLORS = [
             {"code":"100 C","name":"Yellow 100","hex":"#F6EB61"},
             {"code":"101 C","name":"Yellow 101","hex":"#F7EA48"},
@@ -1068,63 +1176,16 @@
             {"code":"403 C","name":"Warm Gray 403","hex":"#998B82"},
             {"code":"404 C","name":"Warm Gray 404","hex":"#857874"},
             {"code":"405 C","name":"Warm Gray 405","hex":"#696158"},
-            {"code":"406 C","name":"Warm Gray 406","hex":"#C4BCB7"},
-            {"code":"407 C","name":"Warm Gray 407","hex":"#B2A8A2"},
-            {"code":"408 C","name":"Warm Gray 408","hex":"#978C87"},
-            {"code":"409 C","name":"Warm Gray 409","hex":"#877E7C"},
-            {"code":"410 C","name":"Warm Gray 410","hex":"#736A62"},
-            {"code":"411 C","name":"Warm Gray 411","hex":"#5E564A"},
-            {"code":"412 C","name":"Brown 412","hex":"#382E2C"},
-            {"code":"413 C","name":"Cool Gray 413","hex":"#C6C4C0"},
-            {"code":"414 C","name":"Cool Gray 414","hex":"#B4B2AD"},
-            {"code":"415 C","name":"Cool Gray 415","hex":"#A19D95"},
-            {"code":"416 C","name":"Cool Gray 416","hex":"#8E8B82"},
-            {"code":"417 C","name":"Cool Gray 417","hex":"#7A756A"},
-            {"code":"418 C","name":"Cool Gray 418","hex":"#615D52"},
-            {"code":"419 C","name":"Black 419","hex":"#212721"},
-            {"code":"420 C","name":"Cool Gray 420","hex":"#C7C9C7"},
-            {"code":"421 C","name":"Cool Gray 421","hex":"#B2B4B2"},
-            {"code":"422 C","name":"Cool Gray 422","hex":"#9EA2A2"},
-            {"code":"423 C","name":"Cool Gray 423","hex":"#898D8D"},
-            {"code":"424 C","name":"Cool Gray 424","hex":"#707372"},
-            {"code":"425 C","name":"Cool Gray 425","hex":"#54585A"},
-            {"code":"426 C","name":"Black 426","hex":"#25282A"},
-            {"code":"427 C","name":"Cool Gray 427","hex":"#D0D3D4"},
-            {"code":"428 C","name":"Cool Gray 428","hex":"#C1C6C8"},
-            {"code":"429 C","name":"Cool Gray 429","hex":"#A2AAAD"},
-            {"code":"430 C","name":"Cool Gray 430","hex":"#7C878E"},
-            {"code":"431 C","name":"Cool Gray 431","hex":"#5B6770"},
-            {"code":"432 C","name":"Cool Gray 432","hex":"#333F48"},
-            {"code":"433 C","name":"Black 433","hex":"#1D252D"},
-            {"code":"Black C","name":"Black","hex":"#2D2926"},
-            {"code":"Black 2 C","name":"Black 2","hex":"#332F21"},
-            {"code":"Black 3 C","name":"Black 3","hex":"#212721"},
-            {"code":"Black 4 C","name":"Black 4","hex":"#31261D"},
-            {"code":"Black 5 C","name":"Black 5","hex":"#3E2B2E"},
-            {"code":"Black 6 C","name":"Black 6","hex":"#101820"},
-            {"code":"Black 7 C","name":"Black 7","hex":"#3D3935"},
             {"code":"Cool Gray 1 C","name":"Cool Gray 1","hex":"#D9D9D6"},
-            {"code":"Cool Gray 2 C","name":"Cool Gray 2","hex":"#D0D0CE"},
-            {"code":"Cool Gray 3 C","name":"Cool Gray 3","hex":"#C8C9C7"},
-            {"code":"Cool Gray 4 C","name":"Cool Gray 4","hex":"#BBBCBC"},
             {"code":"Cool Gray 5 C","name":"Cool Gray 5","hex":"#B1B3B3"},
-            {"code":"Cool Gray 6 C","name":"Cool Gray 6","hex":"#A7A8AA"},
-            {"code":"Cool Gray 7 C","name":"Cool Gray 7","hex":"#97999B"},
-            {"code":"Cool Gray 8 C","name":"Cool Gray 8","hex":"#888B8D"},
             {"code":"Cool Gray 9 C","name":"Cool Gray 9","hex":"#75787B"},
-            {"code":"Cool Gray 10 C","name":"Cool Gray 10","hex":"#63666A"},
             {"code":"Cool Gray 11 C","name":"Cool Gray 11","hex":"#53565A"},
             {"code":"Warm Gray 1 C","name":"Warm Gray 1","hex":"#D7D2CB"},
-            {"code":"Warm Gray 2 C","name":"Warm Gray 2","hex":"#CBC4BC"},
-            {"code":"Warm Gray 3 C","name":"Warm Gray 3","hex":"#BFB8AF"},
-            {"code":"Warm Gray 4 C","name":"Warm Gray 4","hex":"#B6ADA5"},
             {"code":"Warm Gray 5 C","name":"Warm Gray 5","hex":"#ACA39A"},
-            {"code":"Warm Gray 6 C","name":"Warm Gray 6","hex":"#A59C94"},
-            {"code":"Warm Gray 7 C","name":"Warm Gray 7","hex":"#968C83"},
-            {"code":"Warm Gray 8 C","name":"Warm Gray 8","hex":"#8C8279"},
             {"code":"Warm Gray 9 C","name":"Warm Gray 9","hex":"#83786F"},
-            {"code":"Warm Gray 10 C","name":"Warm Gray 10","hex":"#796E65"},
             {"code":"Warm Gray 11 C","name":"Warm Gray 11","hex":"#6E6259"},
+            {"code":"Black C","name":"Black","hex":"#2D2926"},
+            {"code":"Black 6 C","name":"Black 6","hex":"#101820"},
             {"code":"Red 032 C","name":"Red 032","hex":"#EF3340"},
             {"code":"Orange 021 C","name":"Orange 021","hex":"#FE5000"},
             {"code":"Yellow C","name":"Yellow","hex":"#FEDD00"},
@@ -1134,21 +1195,14 @@
             {"code":"Process Blue C","name":"Process Blue","hex":"#0085CA"},
             {"code":"Purple C","name":"Purple","hex":"#BB29BB"},
             {"code":"Rhodamine Red C","name":"Rhodamine Red","hex":"#E10098"},
-            {"code":"Rubine Red C","name":"Rubine Red","hex":"#CE0058"},
             {"code":"Violet C","name":"Violet","hex":"#440099"},
             {"code":"Warm Red C","name":"Warm Red","hex":"#F9423A"},
-            {"code":"Process Cyan C","name":"Process Cyan","hex":"#009FDF"},
-            {"code":"Process Magenta C","name":"Process Magenta","hex":"#D0006F"},
-            {"code":"Process Yellow C","name":"Process Yellow","hex":"#FFE800"},
             {"code":"Bright Red C","name":"Bright Red","hex":"#F93822"},
             {"code":"Bright Orange C","name":"Bright Orange","hex":"#FF6900"},
-            {"code":"Pink C","name":"Pink","hex":"#D62598"},
-            {"code":"Medium Purple C","name":"Medium Purple","hex":"#4E008E"}
+            {"code":"Pink C","name":"Pink","hex":"#D62598"}
         ];
 
-        // ========================================
-        // CIEDE2000 Color Difference Algorithm
-        // ========================================
+        // Color conversion functions
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
@@ -1166,7 +1220,6 @@
         }
 
         function rgbToLab(r, g, b) {
-            // Convert RGB to XYZ
             let rLinear = r / 255;
             let gLinear = g / 255;
             let bLinear = b / 255;
@@ -1175,83 +1228,55 @@
             gLinear = gLinear > 0.04045 ? Math.pow((gLinear + 0.055) / 1.055, 2.4) : gLinear / 12.92;
             bLinear = bLinear > 0.04045 ? Math.pow((bLinear + 0.055) / 1.055, 2.4) : bLinear / 12.92;
 
-            rLinear *= 100;
-            gLinear *= 100;
-            bLinear *= 100;
+            rLinear *= 100; gLinear *= 100; bLinear *= 100;
 
             const x = rLinear * 0.4124564 + gLinear * 0.3575761 + bLinear * 0.1804375;
             const y = rLinear * 0.2126729 + gLinear * 0.7151522 + bLinear * 0.0721750;
             const z = rLinear * 0.0193339 + gLinear * 0.1191920 + bLinear * 0.9503041;
 
-            // Convert XYZ to Lab (D65 illuminant)
-            const xn = 95.047;
-            const yn = 100.000;
-            const zn = 108.883;
+            const xn = 95.047, yn = 100.000, zn = 108.883;
 
             const fx = x / xn > 0.008856 ? Math.pow(x / xn, 1/3) : (903.3 * x / xn + 16) / 116;
             const fy = y / yn > 0.008856 ? Math.pow(y / yn, 1/3) : (903.3 * y / yn + 16) / 116;
             const fz = z / zn > 0.008856 ? Math.pow(z / zn, 1/3) : (903.3 * z / zn + 16) / 116;
 
-            const L = 116 * fy - 16;
-            const a = 500 * (fx - fy);
-            const bLab = 200 * (fy - fz);
-
-            return { L, a, b: bLab };
+            return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
         }
 
         function ciede2000(lab1, lab2) {
             const L1 = lab1.L, a1 = lab1.a, b1 = lab1.b;
             const L2 = lab2.L, a2 = lab2.a, b2 = lab2.b;
-
             const kL = 1, kC = 1, kH = 1;
 
             const C1 = Math.sqrt(a1 * a1 + b1 * b1);
             const C2 = Math.sqrt(a2 * a2 + b2 * b2);
             const Cab = (C1 + C2) / 2;
-
             const G = 0.5 * (1 - Math.sqrt(Math.pow(Cab, 7) / (Math.pow(Cab, 7) + Math.pow(25, 7))));
 
-            const a1p = a1 * (1 + G);
-            const a2p = a2 * (1 + G);
-
+            const a1p = a1 * (1 + G), a2p = a2 * (1 + G);
             const C1p = Math.sqrt(a1p * a1p + b1 * b1);
             const C2p = Math.sqrt(a2p * a2p + b2 * b2);
 
             let h1p = Math.atan2(b1, a1p) * 180 / Math.PI;
             if (h1p < 0) h1p += 360;
-
             let h2p = Math.atan2(b2, a2p) * 180 / Math.PI;
             if (h2p < 0) h2p += 360;
 
-            const dLp = L2 - L1;
-            const dCp = C2p - C1p;
-
+            const dLp = L2 - L1, dCp = C2p - C1p;
             let dhp;
-            if (C1p * C2p === 0) {
-                dhp = 0;
-            } else if (Math.abs(h2p - h1p) <= 180) {
-                dhp = h2p - h1p;
-            } else if (h2p - h1p > 180) {
-                dhp = h2p - h1p - 360;
-            } else {
-                dhp = h2p - h1p + 360;
-            }
+            if (C1p * C2p === 0) dhp = 0;
+            else if (Math.abs(h2p - h1p) <= 180) dhp = h2p - h1p;
+            else if (h2p - h1p > 180) dhp = h2p - h1p - 360;
+            else dhp = h2p - h1p + 360;
 
             const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * Math.PI / 360);
-
-            const Lp = (L1 + L2) / 2;
-            const Cp = (C1p + C2p) / 2;
+            const Lp = (L1 + L2) / 2, Cp = (C1p + C2p) / 2;
 
             let Hp;
-            if (C1p * C2p === 0) {
-                Hp = h1p + h2p;
-            } else if (Math.abs(h1p - h2p) <= 180) {
-                Hp = (h1p + h2p) / 2;
-            } else if (h1p + h2p < 360) {
-                Hp = (h1p + h2p + 360) / 2;
-            } else {
-                Hp = (h1p + h2p - 360) / 2;
-            }
+            if (C1p * C2p === 0) Hp = h1p + h2p;
+            else if (Math.abs(h1p - h2p) <= 180) Hp = (h1p + h2p) / 2;
+            else if (h1p + h2p < 360) Hp = (h1p + h2p + 360) / 2;
+            else Hp = (h1p + h2p - 360) / 2;
 
             const T = 1 - 0.17 * Math.cos((Hp - 30) * Math.PI / 180)
                       + 0.24 * Math.cos(2 * Hp * Math.PI / 180)
@@ -1259,42 +1284,33 @@
                       - 0.20 * Math.cos((4 * Hp - 63) * Math.PI / 180);
 
             const dTheta = 30 * Math.exp(-Math.pow((Hp - 275) / 25, 2));
-
             const RC = 2 * Math.sqrt(Math.pow(Cp, 7) / (Math.pow(Cp, 7) + Math.pow(25, 7)));
-
             const SL = 1 + (0.015 * Math.pow(Lp - 50, 2)) / Math.sqrt(20 + Math.pow(Lp - 50, 2));
             const SC = 1 + 0.045 * Cp;
             const SH = 1 + 0.015 * Cp * T;
-
             const RT = -Math.sin(2 * dTheta * Math.PI / 180) * RC;
 
-            const dE = Math.sqrt(
+            return Math.sqrt(
                 Math.pow(dLp / (kL * SL), 2) +
                 Math.pow(dCp / (kC * SC), 2) +
                 Math.pow(dHp / (kH * SH), 2) +
                 RT * (dCp / (kC * SC)) * (dHp / (kH * SH))
             );
-
-            return dE;
         }
 
         function findClosestPantoneColors(r, g, b, count = 5) {
             const inputLab = rgbToLab(r, g, b);
-            
             const results = PANTONE_COLORS.map(color => {
                 const rgb = hexToRgb(color.hex);
                 const lab = rgbToLab(rgb.r, rgb.g, rgb.b);
                 const deltaE = ciede2000(inputLab, lab);
                 return { ...color, deltaE };
             });
-
             results.sort((a, b) => a.deltaE - b.deltaE);
             return results.slice(0, count);
         }
 
-        // ========================================
-        // Application Logic
-        // ========================================
+        // DOM Elements
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const canvasContainer = document.getElementById('canvasContainer');
@@ -1307,23 +1323,22 @@
         const pantoneValue = document.getElementById('pantoneValue');
         const hexValue = document.getElementById('hexValue');
         const rgbValue = document.getElementById('rgbValue');
-        const deltaValue = document.getElementById('deltaValue');
         const resultsList = document.getElementById('resultsList');
         const loading = document.getElementById('loading');
         const historySection = document.getElementById('historySection');
         const historyColors = document.getElementById('historyColors');
         const clearHistory = document.getElementById('clearHistory');
+        const toast = document.getElementById('toast');
+        const toastText = document.getElementById('toastText');
 
         const ctx = imageCanvas.getContext('2d');
         const zoomCtx = zoomCanvas.getContext('2d');
         let currentImage = null;
         let colorHistory = [];
 
-        // File Upload
+        // Event Listeners
         uploadArea.addEventListener('click', (e) => {
-            if (!currentImage) {
-                fileInput.click();
-            }
+            if (!currentImage) fileInput.click();
         });
 
         uploadArea.addEventListener('dragover', (e) => {
@@ -1339,16 +1354,11 @@
             e.preventDefault();
             uploadArea.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                loadImage(file);
-            }
+            if (file && file.type.startsWith('image/')) loadImage(file);
         });
 
         fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                loadImage(file);
-            }
+            if (e.target.files[0]) loadImage(e.target.files[0]);
         });
 
         function loadImage(file) {
@@ -1367,10 +1377,10 @@
         function displayImage() {
             const maxWidth = uploadArea.clientWidth - 32;
             const maxHeight = 500;
-            
+
             let width = currentImage.width;
             let height = currentImage.height;
-            
+
             if (width > maxWidth) {
                 height = (maxWidth / width) * height;
                 width = maxWidth;
@@ -1384,9 +1394,9 @@
             imageCanvas.height = height;
             ctx.drawImage(currentImage, 0, 0, width, height);
 
-            // Update UI
-            uploadArea.querySelector('.upload-icon').style.display = 'none';
-            uploadArea.querySelector('.upload-text').style.display = 'none';
+            uploadArea.querySelector('.upload-icon-wrapper').style.display = 'none';
+            uploadArea.querySelector('.upload-content').style.display = 'none';
+            uploadArea.querySelector('.upload-hint').style.display = 'none';
             uploadArea.classList.add('has-image');
             canvasContainer.classList.add('visible');
             instructions.classList.add('visible');
@@ -1395,8 +1405,9 @@
 
         resetBtn.addEventListener('click', () => {
             currentImage = null;
-            uploadArea.querySelector('.upload-icon').style.display = 'flex';
-            uploadArea.querySelector('.upload-text').style.display = 'block';
+            uploadArea.querySelector('.upload-icon-wrapper').style.display = 'flex';
+            uploadArea.querySelector('.upload-content').style.display = 'block';
+            uploadArea.querySelector('.upload-hint').style.display = 'flex';
             uploadArea.classList.remove('has-image');
             canvasContainer.classList.remove('visible');
             instructions.classList.remove('visible');
@@ -1405,7 +1416,6 @@
             fileInput.value = '';
         });
 
-        // Color Picking
         imageCanvas.addEventListener('mousemove', (e) => {
             if (!currentImage) return;
 
@@ -1415,26 +1425,20 @@
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
 
-            // Position zoom indicator
             zoomIndicator.style.left = `${e.clientX - rect.left + 20}px`;
-            zoomIndicator.style.top = `${e.clientY - rect.top - 60}px`;
+            zoomIndicator.style.top = `${e.clientY - rect.top - 50}px`;
             zoomIndicator.classList.add('visible');
 
-            // Draw zoomed view
-            const zoomLevel = 8;
-            const sourceSize = 15;
+            const sourceSize = 12;
             zoomCtx.imageSmoothingEnabled = false;
-            zoomCtx.clearRect(0, 0, 120, 120);
+            zoomCtx.clearRect(0, 0, 100, 100);
             zoomCtx.drawImage(
                 imageCanvas,
                 Math.max(0, x - sourceSize / 2),
                 Math.max(0, y - sourceSize / 2),
                 sourceSize,
                 sourceSize,
-                0,
-                0,
-                120,
-                120
+                0, 0, 100, 100
             );
         });
 
@@ -1452,79 +1456,72 @@
             const y = Math.floor((e.clientY - rect.top) * scaleY);
 
             const pixel = ctx.getImageData(x, y, 1, 1).data;
-            const r = pixel[0], g = pixel[1], b = pixel[2];
-
-            analyzeColor(r, g, b);
+            analyzeColor(pixel[0], pixel[1], pixel[2]);
         });
 
         function analyzeColor(r, g, b) {
-            // Show loading
             loading.classList.add('visible');
             resultsList.innerHTML = '';
 
-            // Simulate brief delay for UX
             setTimeout(() => {
                 const hex = rgbToHex(r, g, b);
                 const results = findClosestPantoneColors(r, g, b, 5);
                 const closest = results[0];
 
-                // Update color preview
                 colorSwatch.style.backgroundColor = hex;
                 colorSwatch.classList.add('visible');
+                document.querySelector('.color-preview-placeholder').style.display = 'none';
 
-                // Update color info
                 pantoneValue.textContent = closest.code;
                 hexValue.textContent = hex;
                 rgbValue.textContent = `${r}, ${g}, ${b}`;
-                deltaValue.textContent = closest.deltaE.toFixed(2);
 
-                // Update results list
                 loading.classList.remove('visible');
                 resultsList.innerHTML = results.map((result, index) => `
                     <div class="result-item fade-in" style="animation-delay: ${index * 0.05}s" onclick="copyPantone('${result.code}')">
-                        <div class="result-color" style="background-color: ${result.hex}"></div>
-                        <div class="result-info">
+                        <div class="result-swatch" style="background-color: ${result.hex}"></div>
+                        <div class="result-details">
                             <div class="result-name">${result.name}</div>
                             <div class="result-code">PANTONE ${result.code}</div>
                         </div>
-                        <div class="result-delta ${result.deltaE < 5 ? 'excellent' : ''}">
-                            ΔE ${result.deltaE.toFixed(2)}
+                        <div class="result-badge ${result.deltaE < 5 ? 'excellent' : ''}">
+                            ΔE ${result.deltaE.toFixed(1)}
                         </div>
                     </div>
                 `).join('');
 
-                // Add to history
                 addToHistory(hex, closest.code);
-
-            }, 200);
+            }, 150);
         }
 
         function copyPantone(code) {
             navigator.clipboard.writeText(`PANTONE ${code}`).then(() => {
-                // Brief visual feedback could be added here
+                showToast(`Copied PANTONE ${code}`);
             });
         }
 
+        function showToast(message) {
+            toastText.textContent = message;
+            toast.classList.add('visible');
+            setTimeout(() => toast.classList.remove('visible'), 2500);
+        }
+
         function addToHistory(hex, code) {
-            // Avoid duplicates
             if (colorHistory.find(c => c.hex === hex)) return;
-
             colorHistory.unshift({ hex, code });
-            if (colorHistory.length > 12) colorHistory.pop();
-
+            if (colorHistory.length > 10) colorHistory.pop();
             updateHistoryUI();
         }
 
         function updateHistoryUI() {
             if (colorHistory.length === 0) {
-                historySection.style.display = 'none';
+                historySection.classList.remove('visible');
                 return;
             }
-
-            historySection.style.display = 'block';
+            historySection.classList.add('visible');
             historyColors.innerHTML = colorHistory.map(c => `
-                <div class="history-item" 
-                     style="background-color: ${c.hex}" 
+                <div class="history-item"
+                     style="background-color: ${c.hex}"
                      title="PANTONE ${c.code}"
                      onclick="reanalyzeFromHex('${c.hex}')">
                 </div>
@@ -1541,7 +1538,6 @@
             updateHistoryUI();
         });
 
-        // Make copyPantone available globally
         window.copyPantone = copyPantone;
     </script>
 </body>
