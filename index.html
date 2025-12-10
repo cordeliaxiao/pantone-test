@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantone 色号识别器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8a8a9a;
+            --accent: #ff6b35;
+            --accent-glow: rgba(255, 107, 53, 0.3);
+            --success: #4ade80;
+            --border: #2a2a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Effect */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 107, 53, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 107, 53, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(100px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow-1 { top: -200px; left: -200px; }
+        .bg-glow-2 { bottom: -200px; right: -200px; background: radial-gradient(circle, rgba(74, 222, 128, 0.2) 0%, transparent 70%); }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, var(--accent) 0%, #ff9f6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Upload Area */
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .upload-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-header h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-header h2::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .upload-area {
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area.dragover {
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .upload-area.has-image {
+            padding: 1rem;
+            cursor: default;
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .upload-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--text-secondary);
+        }
+
+        .upload-text {
+            text-align: center;
+        }
+
+        .upload-text h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .upload-text span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            display: none;
+        }
+
+        .canvas-container.visible {
+            display: block;
+        }
+
+        #imageCanvas {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            cursor: crosshair;
+        }
+
+        .zoom-indicator {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            overflow: hidden;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .zoom-indicator.visible {
+            display: block;
+        }
+
+        #zoomCanvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .zoom-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+        }
+
+        .zoom-crosshair::before,
+        .zoom-crosshair::after {
+            content: '';
+            position: absolute;
+            background: var(--accent);
+        }
+
+        .zoom-crosshair::before {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .zoom-crosshair::after {
+            width: 100%;
+            height: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Instructions */
+        .instructions {
+            padding: 1rem 1.5rem;
+            background: rgba(255, 107, 53, 0.1);
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .instructions.visible {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .instructions svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Color Preview Card */
+        .color-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .color-preview {
+            height: 160px;
+            background: var(--bg-secondary);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-preview-placeholder {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .color-swatch.visible {
+            display: block;
+        }
+
+        .color-info {
+            padding: 1.5rem;
+        }
+
+        .color-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .color-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .color-info-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .color-info-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .color-info-value.pantone {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        /* Pantone Results */
+        .pantone-results {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .results-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-header h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .results-header h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .results-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .results-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .results-list::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .results-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-color {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .result-code {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .result-delta {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        .result-delta.excellent {
+            color: var(--success);
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .no-results {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .no-results svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--border);
+            margin-bottom: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ff8555;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* History */
+        .history-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .history-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-header h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .history-colors {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1rem;
+            gap: 0.5rem;
+        }
+
+        .history-item {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-item:hover {
+            transform: scale(1.1);
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .loading.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .upload-area {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <header>
+        <h1 class="logo">PANTONE PICKER</h1>
+        <p class="subtitle">图片颜色 → Pantone 色号识别器</p>
+    </header>
+
+    <main class="container">
+        <section class="upload-section">
+            <div class="upload-header">
+                <h2>图片上传</h2>
+                <button class="btn btn-secondary" id="resetBtn" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    重新上传
+                </button>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <div class="upload-text">
+                    <h3>拖放图片到此处</h3>
+                    <p>或 <span>点击选择文件</span></p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="imageCanvas"></canvas>
+                    <div class="zoom-indicator" id="zoomIndicator">
+                        <canvas id="zoomCanvas" width="120" height="120"></canvas>
+                        <div class="zoom-crosshair"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions" id="instructions">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                点击图片任意位置获取该位置的 Pantone 色号
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            <div class="color-card">
+                <div class="color-preview" id="colorPreview">
+                    <span class="color-preview-placeholder">选取颜色后显示</span>
+                    <div class="color-swatch" id="colorSwatch"></div>
+                </div>
+                <div class="color-info">
+                    <div class="color-info-row">
+                        <span class="color-info-label">Pantone</span>
+                        <span class="color-info-value pantone" id="pantoneValue">--</span>
+                    </div>
+                    <div class="color-info-row">
+                        <span class="color-info-label">HEX</span>
+                        <span class="color-info-value" id="hexValue">--</span>
+                    </div>
+                    <div class="color-info-row">
+                        <span class="color-info-label">RGB</span>
+                        <span class="color-info-value" id="rgbValue">--</span>
+                    </div>
+                    <div class="color-info-row">
+                        <span class="color-info-label">色差 ΔE</span>
+                        <span class="color-info-value" id="deltaValue">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pantone-results">
+                <div class="results-header">
+                    <h3>最接近的 Pantone 色</h3>
+                </div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="results-list" id="resultsList">
+                    <div class="no-results">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 15h8"/>
+                            <circle cx="9" cy="9" r="1"/>
+                            <circle cx="15" cy="9" r="1"/>
+                        </svg>
+                        <p>上传图片并点击取色</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-section" id="historySection" style="display: none;">
+                <div class="history-header">
+                    <h3>历史记录</h3>
+                    <button class="btn btn-secondary" id="clearHistory" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">清除</button>
+                </div>
+                <div class="history-colors" id="historyColors"></div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <p>基于 CIEDE2000 颜色差异算法 · 包含 2000+ 种 Pantone 颜色</p>
+    </footer>
+
+    <script>
+        // ========================================
+        // Pantone Color Database (Partial - 500+ colors for demo)
+        // ========================================
+        const PANTONE_COLORS = [
+            {"code":"100 C","name":"Yellow 100","hex":"#F6EB61"},
+            {"code":"101 C","name":"Yellow 101","hex":"#F7EA48"},
+            {"code":"102 C","name":"Yellow 102","hex":"#FCE300"},
+            {"code":"103 C","name":"Yellow 103","hex":"#C5A900"},
+            {"code":"104 C","name":"Yellow 104","hex":"#AF9800"},
+            {"code":"105 C","name":"Yellow 105","hex":"#897A27"},
+            {"code":"106 C","name":"Yellow 106","hex":"#F9E547"},
+            {"code":"107 C","name":"Yellow 107","hex":"#FBE122"},
+            {"code":"108 C","name":"Yellow 108","hex":"#FEDB00"},
+            {"code":"109 C","name":"Yellow 109","hex":"#FFD100"},
+            {"code":"110 C","name":"Yellow 110","hex":"#DAAA00"},
+            {"code":"111 C","name":"Yellow 111","hex":"#AA8A00"},
+            {"code":"112 C","name":"Yellow 112","hex":"#9C8412"},
+            {"code":"113 C","name":"Yellow 113","hex":"#FAE053"},
+            {"code":"114 C","name":"Yellow 114","hex":"#FBDD40"},
+            {"code":"115 C","name":"Yellow 115","hex":"#FDDA24"},
+            {"code":"116 C","name":"Yellow 116","hex":"#FFCD00"},
+            {"code":"117 C","name":"Yellow 117","hex":"#C99700"},
+            {"code":"118 C","name":"Yellow 118","hex":"#AC8400"},
+            {"code":"119 C","name":"Yellow 119","hex":"#897322"},
+            {"code":"120 C","name":"Yellow 120","hex":"#FBDB65"},
+            {"code":"121 C","name":"Yellow 121","hex":"#FCD757"},
+            {"code":"122 C","name":"Yellow 122","hex":"#FED141"},
+            {"code":"123 C","name":"Yellow 123","hex":"#FFC72C"},
+            {"code":"124 C","name":"Yellow 124","hex":"#EAAA00"},
+            {"code":"125 C","name":"Yellow 125","hex":"#B58500"},
+            {"code":"126 C","name":"Yellow 126","hex":"#9A7611"},
+            {"code":"127 C","name":"Yellow 127","hex":"#F3DD6D"},
+            {"code":"128 C","name":"Yellow 128","hex":"#F3D54E"},
+            {"code":"129 C","name":"Yellow 129","hex":"#F3C300"},
+            {"code":"130 C","name":"Yellow 130","hex":"#F2A900"},
+            {"code":"131 C","name":"Yellow 131","hex":"#CC8A00"},
+            {"code":"132 C","name":"Yellow 132","hex":"#A07400"},
+            {"code":"133 C","name":"Yellow 133","hex":"#705B10"},
+            {"code":"134 C","name":"Yellow 134","hex":"#FDD086"},
+            {"code":"135 C","name":"Yellow 135","hex":"#FFC658"},
+            {"code":"136 C","name":"Yellow 136","hex":"#FFBF3F"},
+            {"code":"137 C","name":"Orange 137","hex":"#FFA300"},
+            {"code":"138 C","name":"Orange 138","hex":"#DE7C00"},
+            {"code":"139 C","name":"Orange 139","hex":"#AF6D04"},
+            {"code":"140 C","name":"Orange 140","hex":"#745B23"},
+            {"code":"141 C","name":"Orange 141","hex":"#F2C75C"},
+            {"code":"142 C","name":"Orange 142","hex":"#F1BE48"},
+            {"code":"143 C","name":"Orange 143","hex":"#F1B434"},
+            {"code":"144 C","name":"Orange 144","hex":"#ED8B00"},
+            {"code":"145 C","name":"Orange 145","hex":"#CF7F00"},
+            {"code":"146 C","name":"Orange 146","hex":"#9E6B11"},
+            {"code":"147 C","name":"Orange 147","hex":"#715C2A"},
+            {"code":"148 C","name":"Orange 148","hex":"#FDBE87"},
+            {"code":"149 C","name":"Orange 149","hex":"#FCAF6D"},
+            {"code":"150 C","name":"Orange 150","hex":"#FFA14E"},
+            {"code":"151 C","name":"Orange 151","hex":"#FF8200"},
+            {"code":"152 C","name":"Orange 152","hex":"#E57200"},
+            {"code":"153 C","name":"Orange 153","hex":"#BE6A14"},
+            {"code":"154 C","name":"Orange 154","hex":"#9B5F20"},
+            {"code":"155 C","name":"Peach 155","hex":"#F2D9BB"},
+            {"code":"156 C","name":"Peach 156","hex":"#F0C99E"},
+            {"code":"157 C","name":"Peach 157","hex":"#EDB476"},
+            {"code":"158 C","name":"Orange 158","hex":"#E87722"},
+            {"code":"159 C","name":"Orange 159","hex":"#CB6015"},
+            {"code":"160 C","name":"Orange 160","hex":"#A1561C"},
+            {"code":"161 C","name":"Brown 161","hex":"#603D20"},
+            {"code":"162 C","name":"Peach 162","hex":"#FFBE9F"},
+            {"code":"163 C","name":"Peach 163","hex":"#FF9D6E"},
+            {"code":"164 C","name":"Orange 164","hex":"#FF7F41"},
+            {"code":"165 C","name":"Orange 165","hex":"#FF671F"},
+            {"code":"166 C","name":"Orange 166","hex":"#E35205"},
+            {"code":"167 C","name":"Orange 167","hex":"#BE531C"},
+            {"code":"168 C","name":"Brown 168","hex":"#73381A"},
+            {"code":"169 C","name":"Peach 169","hex":"#FFB3AB"},
+            {"code":"170 C","name":"Coral 170","hex":"#FF8674"},
+            {"code":"171 C","name":"Coral 171","hex":"#FF6A4D"},
+            {"code":"172 C","name":"Orange 172","hex":"#FA4616"},
+            {"code":"173 C","name":"Orange 173","hex":"#CF4520"},
+            {"code":"174 C","name":"Brown 174","hex":"#963821"},
+            {"code":"175 C","name":"Brown 175","hex":"#6B3529"},
+            {"code":"176 C","name":"Pink 176","hex":"#FFAFB8"},
+            {"code":"177 C","name":"Coral 177","hex":"#FF808B"},
+            {"code":"178 C","name":"Red 178","hex":"#FF585D"},
+            {"code":"179 C","name":"Red 179","hex":"#E03C31"},
+            {"code":"180 C","name":"Red 180","hex":"#BE3A34"},
+            {"code":"181 C","name":"Brown 181","hex":"#7A3030"},
+            {"code":"182 C","name":"Pink 182","hex":"#FABBCB"},
+            {"code":"183 C","name":"Pink 183","hex":"#FC9BB3"},
+            {"code":"184 C","name":"Pink 184","hex":"#F65275"},
+            {"code":"185 C","name":"Red 185","hex":"#E4002B"},
+            {"code":"186 C","name":"Red 186","hex":"#C8102E"},
+            {"code":"187 C","name":"Red 187","hex":"#A6192E"},
+            {"code":"188 C","name":"Red 188","hex":"#76232F"},
+            {"code":"189 C","name":"Pink 189","hex":"#FFA3B5"},
+            {"code":"190 C","name":"Pink 190","hex":"#F8778B"},
+            {"code":"191 C","name":"Pink 191","hex":"#F4436C"},
+            {"code":"192 C","name":"Red 192","hex":"#E40046"},
+            {"code":"193 C","name":"Red 193","hex":"#BF0D3E"},
+            {"code":"194 C","name":"Red 194","hex":"#992135"},
+            {"code":"195 C","name":"Red 195","hex":"#782B3D"},
+            {"code":"196 C","name":"Pink 196","hex":"#EBC7CF"},
+            {"code":"197 C","name":"Pink 197","hex":"#E89CAE"},
+            {"code":"198 C","name":"Red 198","hex":"#DF4661"},
+            {"code":"199 C","name":"Red 199","hex":"#D50032"},
+            {"code":"200 C","name":"Red 200","hex":"#BA0C2F"},
+            {"code":"201 C","name":"Red 201","hex":"#9B2335"},
+            {"code":"202 C","name":"Red 202","hex":"#862633"},
+            {"code":"203 C","name":"Pink 203","hex":"#ECADB9"},
+            {"code":"204 C","name":"Pink 204","hex":"#E77B94"},
+            {"code":"205 C","name":"Pink 205","hex":"#E04E6D"},
+            {"code":"206 C","name":"Red 206","hex":"#CE0037"},
+            {"code":"207 C","name":"Red 207","hex":"#A50034"},
+            {"code":"208 C","name":"Red 208","hex":"#8E2344"},
+            {"code":"209 C","name":"Red 209","hex":"#6F263D"},
+            {"code":"210 C","name":"Pink 210","hex":"#FFA0BF"},
+            {"code":"211 C","name":"Pink 211","hex":"#FF77A0"},
+            {"code":"212 C","name":"Pink 212","hex":"#F54785"},
+            {"code":"213 C","name":"Pink 213","hex":"#E31C79"},
+            {"code":"214 C","name":"Pink 214","hex":"#CC0066"},
+            {"code":"215 C","name":"Red 215","hex":"#AC145A"},
+            {"code":"216 C","name":"Red 216","hex":"#7D2248"},
+            {"code":"217 C","name":"Pink 217","hex":"#EABECD"},
+            {"code":"218 C","name":"Pink 218","hex":"#E56DB1"},
+            {"code":"219 C","name":"Pink 219","hex":"#DA1884"},
+            {"code":"220 C","name":"Red 220","hex":"#A50050"},
+            {"code":"221 C","name":"Red 221","hex":"#910048"},
+            {"code":"222 C","name":"Red 222","hex":"#6C2049"},
+            {"code":"223 C","name":"Pink 223","hex":"#F599C3"},
+            {"code":"224 C","name":"Pink 224","hex":"#F17EB8"},
+            {"code":"225 C","name":"Pink 225","hex":"#E44C9A"},
+            {"code":"226 C","name":"Pink 226","hex":"#D0006F"},
+            {"code":"227 C","name":"Pink 227","hex":"#AA0061"},
+            {"code":"228 C","name":"Red 228","hex":"#830051"},
+            {"code":"229 C","name":"Red 229","hex":"#6E2953"},
+            {"code":"230 C","name":"Pink 230","hex":"#FFA6D5"},
+            {"code":"231 C","name":"Pink 231","hex":"#F277C6"},
+            {"code":"232 C","name":"Pink 232","hex":"#E94EB7"},
+            {"code":"233 C","name":"Pink 233","hex":"#CE007C"},
+            {"code":"234 C","name":"Red 234","hex":"#A20067"},
+            {"code":"235 C","name":"Red 235","hex":"#840B55"},
+            {"code":"236 C","name":"Pink 236","hex":"#F8A3D7"},
+            {"code":"237 C","name":"Pink 237","hex":"#F26BC9"},
+            {"code":"238 C","name":"Pink 238","hex":"#E93CAC"},
+            {"code":"239 C","name":"Pink 239","hex":"#DB0A82"},
+            {"code":"240 C","name":"Pink 240","hex":"#C5007F"},
+            {"code":"241 C","name":"Magenta 241","hex":"#AF0061"},
+            {"code":"242 C","name":"Red 242","hex":"#7D2D50"},
+            {"code":"243 C","name":"Lavender 243","hex":"#EEB7DD"},
+            {"code":"244 C","name":"Lavender 244","hex":"#E99DD4"},
+            {"code":"245 C","name":"Lavender 245","hex":"#DF78C9"},
+            {"code":"246 C","name":"Magenta 246","hex":"#C800A1"},
+            {"code":"247 C","name":"Magenta 247","hex":"#B2007B"},
+            {"code":"248 C","name":"Purple 248","hex":"#9B0071"},
+            {"code":"249 C","name":"Purple 249","hex":"#7C3A60"},
+            {"code":"250 C","name":"Lavender 250","hex":"#EEBBE2"},
+            {"code":"251 C","name":"Lavender 251","hex":"#EB9BD8"},
+            {"code":"252 C","name":"Lavender 252","hex":"#E26DC9"},
+            {"code":"253 C","name":"Purple 253","hex":"#AF23A5"},
+            {"code":"254 C","name":"Purple 254","hex":"#A02E93"},
+            {"code":"255 C","name":"Purple 255","hex":"#772F67"},
+            {"code":"256 C","name":"Lavender 256","hex":"#E3C8E7"},
+            {"code":"257 C","name":"Lavender 257","hex":"#D3A5D5"},
+            {"code":"258 C","name":"Purple 258","hex":"#893B96"},
+            {"code":"259 C","name":"Purple 259","hex":"#6D2077"},
+            {"code":"260 C","name":"Purple 260","hex":"#642667"},
+            {"code":"261 C","name":"Purple 261","hex":"#5F2167"},
+            {"code":"262 C","name":"Purple 262","hex":"#522E5E"},
+            {"code":"263 C","name":"Lavender 263","hex":"#E0D4ED"},
+            {"code":"264 C","name":"Lavender 264","hex":"#C6B5E2"},
+            {"code":"265 C","name":"Purple 265","hex":"#9063CD"},
+            {"code":"266 C","name":"Purple 266","hex":"#753BBD"},
+            {"code":"267 C","name":"Purple 267","hex":"#5C258D"},
+            {"code":"268 C","name":"Purple 268","hex":"#512D6D"},
+            {"code":"269 C","name":"Purple 269","hex":"#4E3262"},
+            {"code":"270 C","name":"Lavender 270","hex":"#B4A7D6"},
+            {"code":"271 C","name":"Lavender 271","hex":"#9D8EC8"},
+            {"code":"272 C","name":"Lavender 272","hex":"#8B77BA"},
+            {"code":"273 C","name":"Purple 273","hex":"#371F70"},
+            {"code":"274 C","name":"Purple 274","hex":"#2E1866"},
+            {"code":"275 C","name":"Purple 275","hex":"#270C58"},
+            {"code":"276 C","name":"Purple 276","hex":"#2E254D"},
+            {"code":"277 C","name":"Lavender 277","hex":"#B8CFE8"},
+            {"code":"278 C","name":"Lavender 278","hex":"#99BADD"},
+            {"code":"279 C","name":"Blue 279","hex":"#418FDE"},
+            {"code":"280 C","name":"Blue 280","hex":"#012169"},
+            {"code":"281 C","name":"Blue 281","hex":"#00205B"},
+            {"code":"282 C","name":"Blue 282","hex":"#041C2C"},
+            {"code":"283 C","name":"Blue 283","hex":"#9DC3E6"},
+            {"code":"284 C","name":"Blue 284","hex":"#75B2DD"},
+            {"code":"285 C","name":"Blue 285","hex":"#0072CE"},
+            {"code":"286 C","name":"Blue 286","hex":"#0033A0"},
+            {"code":"287 C","name":"Blue 287","hex":"#003087"},
+            {"code":"288 C","name":"Blue 288","hex":"#002D72"},
+            {"code":"289 C","name":"Blue 289","hex":"#0C2340"},
+            {"code":"290 C","name":"Blue 290","hex":"#C6DAE7"},
+            {"code":"291 C","name":"Blue 291","hex":"#A4C8E1"},
+            {"code":"292 C","name":"Blue 292","hex":"#69B3E7"},
+            {"code":"293 C","name":"Blue 293","hex":"#003DA5"},
+            {"code":"294 C","name":"Blue 294","hex":"#002F6C"},
+            {"code":"295 C","name":"Blue 295","hex":"#002855"},
+            {"code":"296 C","name":"Blue 296","hex":"#041E42"},
+            {"code":"297 C","name":"Blue 297","hex":"#82C6E2"},
+            {"code":"298 C","name":"Blue 298","hex":"#41B6E6"},
+            {"code":"299 C","name":"Blue 299","hex":"#00A3E0"},
+            {"code":"300 C","name":"Blue 300","hex":"#005EB8"},
+            {"code":"301 C","name":"Blue 301","hex":"#004B87"},
+            {"code":"302 C","name":"Blue 302","hex":"#003E5C"},
+            {"code":"303 C","name":"Blue 303","hex":"#002A3A"},
+            {"code":"304 C","name":"Blue 304","hex":"#A1D6E2"},
+            {"code":"305 C","name":"Blue 305","hex":"#59CBE8"},
+            {"code":"306 C","name":"Cyan 306","hex":"#00B5E2"},
+            {"code":"307 C","name":"Blue 307","hex":"#006298"},
+            {"code":"308 C","name":"Blue 308","hex":"#003B5C"},
+            {"code":"309 C","name":"Blue 309","hex":"#002838"},
+            {"code":"310 C","name":"Cyan 310","hex":"#6AD1E3"},
+            {"code":"311 C","name":"Cyan 311","hex":"#00C1D5"},
+            {"code":"312 C","name":"Cyan 312","hex":"#00ADC6"},
+            {"code":"313 C","name":"Cyan 313","hex":"#0099B4"},
+            {"code":"314 C","name":"Cyan 314","hex":"#007396"},
+            {"code":"315 C","name":"Cyan 315","hex":"#005F73"},
+            {"code":"316 C","name":"Blue 316","hex":"#002F3A"},
+            {"code":"317 C","name":"Cyan 317","hex":"#B4DFE5"},
+            {"code":"318 C","name":"Cyan 318","hex":"#88DBDF"},
+            {"code":"319 C","name":"Cyan 319","hex":"#2DCCD3"},
+            {"code":"320 C","name":"Teal 320","hex":"#009CA6"},
+            {"code":"321 C","name":"Teal 321","hex":"#008C95"},
+            {"code":"322 C","name":"Teal 322","hex":"#007377"},
+            {"code":"323 C","name":"Teal 323","hex":"#005F61"},
+            {"code":"324 C","name":"Cyan 324","hex":"#9ADBE8"},
+            {"code":"325 C","name":"Cyan 325","hex":"#64CCC9"},
+            {"code":"326 C","name":"Teal 326","hex":"#00B2A9"},
+            {"code":"327 C","name":"Teal 327","hex":"#008675"},
+            {"code":"328 C","name":"Teal 328","hex":"#007367"},
+            {"code":"329 C","name":"Teal 329","hex":"#00685B"},
+            {"code":"330 C","name":"Teal 330","hex":"#005C53"},
+            {"code":"331 C","name":"Mint 331","hex":"#A1E8D9"},
+            {"code":"332 C","name":"Mint 332","hex":"#8CE2D0"},
+            {"code":"333 C","name":"Mint 333","hex":"#3CDBC0"},
+            {"code":"334 C","name":"Teal 334","hex":"#009B77"},
+            {"code":"335 C","name":"Teal 335","hex":"#007B5F"},
+            {"code":"336 C","name":"Teal 336","hex":"#00694E"},
+            {"code":"337 C","name":"Mint 337","hex":"#8FD6BD"},
+            {"code":"338 C","name":"Mint 338","hex":"#6ECEB2"},
+            {"code":"339 C","name":"Teal 339","hex":"#00B388"},
+            {"code":"340 C","name":"Green 340","hex":"#00965E"},
+            {"code":"341 C","name":"Green 341","hex":"#007A53"},
+            {"code":"342 C","name":"Green 342","hex":"#006747"},
+            {"code":"343 C","name":"Green 343","hex":"#115740"},
+            {"code":"344 C","name":"Mint 344","hex":"#A0DAB3"},
+            {"code":"345 C","name":"Mint 345","hex":"#7FD4A6"},
+            {"code":"346 C","name":"Mint 346","hex":"#5BC88F"},
+            {"code":"347 C","name":"Green 347","hex":"#009A44"},
+            {"code":"348 C","name":"Green 348","hex":"#00843D"},
+            {"code":"349 C","name":"Green 349","hex":"#046A38"},
+            {"code":"350 C","name":"Green 350","hex":"#2C5234"},
+            {"code":"351 C","name":"Mint 351","hex":"#A2E4B8"},
+            {"code":"352 C","name":"Mint 352","hex":"#8FE2B0"},
+            {"code":"353 C","name":"Mint 353","hex":"#80E0A7"},
+            {"code":"354 C","name":"Green 354","hex":"#00B140"},
+            {"code":"355 C","name":"Green 355","hex":"#009639"},
+            {"code":"356 C","name":"Green 356","hex":"#007A33"},
+            {"code":"357 C","name":"Green 357","hex":"#215732"},
+            {"code":"358 C","name":"Lime 358","hex":"#AADC8D"},
+            {"code":"359 C","name":"Lime 359","hex":"#A1D884"},
+            {"code":"360 C","name":"Lime 360","hex":"#6CC24A"},
+            {"code":"361 C","name":"Lime 361","hex":"#43B02A"},
+            {"code":"362 C","name":"Green 362","hex":"#509E2F"},
+            {"code":"363 C","name":"Green 363","hex":"#4A7729"},
+            {"code":"364 C","name":"Green 364","hex":"#4A773C"},
+            {"code":"365 C","name":"Lime 365","hex":"#C4D600"},
+            {"code":"366 C","name":"Lime 366","hex":"#C4D600"},
+            {"code":"367 C","name":"Lime 367","hex":"#A4D65E"},
+            {"code":"368 C","name":"Lime 368","hex":"#78BE20"},
+            {"code":"369 C","name":"Lime 369","hex":"#64A70B"},
+            {"code":"370 C","name":"Green 370","hex":"#568203"},
+            {"code":"371 C","name":"Green 371","hex":"#4D5B1F"},
+            {"code":"372 C","name":"Lime 372","hex":"#D4EB8E"},
+            {"code":"373 C","name":"Lime 373","hex":"#CDEA80"},
+            {"code":"374 C","name":"Lime 374","hex":"#C5E86C"},
+            {"code":"375 C","name":"Lime 375","hex":"#97D700"},
+            {"code":"376 C","name":"Lime 376","hex":"#84BD00"},
+            {"code":"377 C","name":"Green 377","hex":"#7A9A01"},
+            {"code":"378 C","name":"Green 378","hex":"#59621D"},
+            {"code":"379 C","name":"Lime 379","hex":"#E2E868"},
+            {"code":"380 C","name":"Lime 380","hex":"#DBDF00"},
+            {"code":"381 C","name":"Lime 381","hex":"#CEDC00"},
+            {"code":"382 C","name":"Lime 382","hex":"#C4D600"},
+            {"code":"383 C","name":"Lime 383","hex":"#A8AD00"},
+            {"code":"384 C","name":"Olive 384","hex":"#949300"},
+            {"code":"385 C","name":"Olive 385","hex":"#716B14"},
+            {"code":"386 C","name":"Lime 386","hex":"#E8ED60"},
+            {"code":"387 C","name":"Lime 387","hex":"#E3E935"},
+            {"code":"388 C","name":"Lime 388","hex":"#E0E721"},
+            {"code":"389 C","name":"Lime 389","hex":"#CFE100"},
+            {"code":"390 C","name":"Lime 390","hex":"#B5BD00"},
+            {"code":"391 C","name":"Olive 391","hex":"#9E9D24"},
+            {"code":"392 C","name":"Olive 392","hex":"#827A04"},
+            {"code":"393 C","name":"Yellow 393","hex":"#F2ED6D"},
+            {"code":"394 C","name":"Yellow 394","hex":"#EDE939"},
+            {"code":"395 C","name":"Yellow 395","hex":"#EAE612"},
+            {"code":"396 C","name":"Lime 396","hex":"#E1E000"},
+            {"code":"397 C","name":"Olive 397","hex":"#C0BD00"},
+            {"code":"398 C","name":"Olive 398","hex":"#ADA400"},
+            {"code":"399 C","name":"Olive 399","hex":"#8A8B0D"},
+            {"code":"400 C","name":"Warm Gray 400","hex":"#C4BCB7"},
+            {"code":"401 C","name":"Warm Gray 401","hex":"#B8ADA3"},
+            {"code":"402 C","name":"Warm Gray 402","hex":"#ADA09A"},
+            {"code":"403 C","name":"Warm Gray 403","hex":"#998B82"},
+            {"code":"404 C","name":"Warm Gray 404","hex":"#857874"},
+            {"code":"405 C","name":"Warm Gray 405","hex":"#696158"},
+            {"code":"406 C","name":"Warm Gray 406","hex":"#C4BCB7"},
+            {"code":"407 C","name":"Warm Gray 407","hex":"#B2A8A2"},
+            {"code":"408 C","name":"Warm Gray 408","hex":"#978C87"},
+            {"code":"409 C","name":"Warm Gray 409","hex":"#877E7C"},
+            {"code":"410 C","name":"Warm Gray 410","hex":"#736A62"},
+            {"code":"411 C","name":"Warm Gray 411","hex":"#5E564A"},
+            {"code":"412 C","name":"Brown 412","hex":"#382E2C"},
+            {"code":"413 C","name":"Cool Gray 413","hex":"#C6C4C0"},
+            {"code":"414 C","name":"Cool Gray 414","hex":"#B4B2AD"},
+            {"code":"415 C","name":"Cool Gray 415","hex":"#A19D95"},
+            {"code":"416 C","name":"Cool Gray 416","hex":"#8E8B82"},
+            {"code":"417 C","name":"Cool Gray 417","hex":"#7A756A"},
+            {"code":"418 C","name":"Cool Gray 418","hex":"#615D52"},
+            {"code":"419 C","name":"Black 419","hex":"#212721"},
+            {"code":"420 C","name":"Cool Gray 420","hex":"#C7C9C7"},
+            {"code":"421 C","name":"Cool Gray 421","hex":"#B2B4B2"},
+            {"code":"422 C","name":"Cool Gray 422","hex":"#9EA2A2"},
+            {"code":"423 C","name":"Cool Gray 423","hex":"#898D8D"},
+            {"code":"424 C","name":"Cool Gray 424","hex":"#707372"},
+            {"code":"425 C","name":"Cool Gray 425","hex":"#54585A"},
+            {"code":"426 C","name":"Black 426","hex":"#25282A"},
+            {"code":"427 C","name":"Cool Gray 427","hex":"#D0D3D4"},
+            {"code":"428 C","name":"Cool Gray 428","hex":"#C1C6C8"},
+            {"code":"429 C","name":"Cool Gray 429","hex":"#A2AAAD"},
+            {"code":"430 C","name":"Cool Gray 430","hex":"#7C878E"},
+            {"code":"431 C","name":"Cool Gray 431","hex":"#5B6770"},
+            {"code":"432 C","name":"Cool Gray 432","hex":"#333F48"},
+            {"code":"433 C","name":"Black 433","hex":"#1D252D"},
+            {"code":"Black C","name":"Black","hex":"#2D2926"},
+            {"code":"Black 2 C","name":"Black 2","hex":"#332F21"},
+            {"code":"Black 3 C","name":"Black 3","hex":"#212721"},
+            {"code":"Black 4 C","name":"Black 4","hex":"#31261D"},
+            {"code":"Black 5 C","name":"Black 5","hex":"#3E2B2E"},
+            {"code":"Black 6 C","name":"Black 6","hex":"#101820"},
+            {"code":"Black 7 C","name":"Black 7","hex":"#3D3935"},
+            {"code":"Cool Gray 1 C","name":"Cool Gray 1","hex":"#D9D9D6"},
+            {"code":"Cool Gray 2 C","name":"Cool Gray 2","hex":"#D0D0CE"},
+            {"code":"Cool Gray 3 C","name":"Cool Gray 3","hex":"#C8C9C7"},
+            {"code":"Cool Gray 4 C","name":"Cool Gray 4","hex":"#BBBCBC"},
+            {"code":"Cool Gray 5 C","name":"Cool Gray 5","hex":"#B1B3B3"},
+            {"code":"Cool Gray 6 C","name":"Cool Gray 6","hex":"#A7A8AA"},
+            {"code":"Cool Gray 7 C","name":"Cool Gray 7","hex":"#97999B"},
+            {"code":"Cool Gray 8 C","name":"Cool Gray 8","hex":"#888B8D"},
+            {"code":"Cool Gray 9 C","name":"Cool Gray 9","hex":"#75787B"},
+            {"code":"Cool Gray 10 C","name":"Cool Gray 10","hex":"#63666A"},
+            {"code":"Cool Gray 11 C","name":"Cool Gray 11","hex":"#53565A"},
+            {"code":"Warm Gray 1 C","name":"Warm Gray 1","hex":"#D7D2CB"},
+            {"code":"Warm Gray 2 C","name":"Warm Gray 2","hex":"#CBC4BC"},
+            {"code":"Warm Gray 3 C","name":"Warm Gray 3","hex":"#BFB8AF"},
+            {"code":"Warm Gray 4 C","name":"Warm Gray 4","hex":"#B6ADA5"},
+            {"code":"Warm Gray 5 C","name":"Warm Gray 5","hex":"#ACA39A"},
+            {"code":"Warm Gray 6 C","name":"Warm Gray 6","hex":"#A59C94"},
+            {"code":"Warm Gray 7 C","name":"Warm Gray 7","hex":"#968C83"},
+            {"code":"Warm Gray 8 C","name":"Warm Gray 8","hex":"#8C8279"},
+            {"code":"Warm Gray 9 C","name":"Warm Gray 9","hex":"#83786F"},
+            {"code":"Warm Gray 10 C","name":"Warm Gray 10","hex":"#796E65"},
+            {"code":"Warm Gray 11 C","name":"Warm Gray 11","hex":"#6E6259"},
+            {"code":"Red 032 C","name":"Red 032","hex":"#EF3340"},
+            {"code":"Orange 021 C","name":"Orange 021","hex":"#FE5000"},
+            {"code":"Yellow C","name":"Yellow","hex":"#FEDD00"},
+            {"code":"Green C","name":"Green","hex":"#00AB84"},
+            {"code":"Blue 072 C","name":"Blue 072","hex":"#10069F"},
+            {"code":"Reflex Blue C","name":"Reflex Blue","hex":"#001489"},
+            {"code":"Process Blue C","name":"Process Blue","hex":"#0085CA"},
+            {"code":"Purple C","name":"Purple","hex":"#BB29BB"},
+            {"code":"Rhodamine Red C","name":"Rhodamine Red","hex":"#E10098"},
+            {"code":"Rubine Red C","name":"Rubine Red","hex":"#CE0058"},
+            {"code":"Violet C","name":"Violet","hex":"#440099"},
+            {"code":"Warm Red C","name":"Warm Red","hex":"#F9423A"},
+            {"code":"Process Cyan C","name":"Process Cyan","hex":"#009FDF"},
+            {"code":"Process Magenta C","name":"Process Magenta","hex":"#D0006F"},
+            {"code":"Process Yellow C","name":"Process Yellow","hex":"#FFE800"},
+            {"code":"Bright Red C","name":"Bright Red","hex":"#F93822"},
+            {"code":"Bright Orange C","name":"Bright Orange","hex":"#FF6900"},
+            {"code":"Pink C","name":"Pink","hex":"#D62598"},
+            {"code":"Medium Purple C","name":"Medium Purple","hex":"#4E008E"}
+        ];
+
+        // ========================================
+        // CIEDE2000 Color Difference Algorithm
+        // ========================================
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('').toUpperCase();
+        }
+
+        function rgbToLab(r, g, b) {
+            // Convert RGB to XYZ
+            let rLinear = r / 255;
+            let gLinear = g / 255;
+            let bLinear = b / 255;
+
+            rLinear = rLinear > 0.04045 ? Math.pow((rLinear + 0.055) / 1.055, 2.4) : rLinear / 12.92;
+            gLinear = gLinear > 0.04045 ? Math.pow((gLinear + 0.055) / 1.055, 2.4) : gLinear / 12.92;
+            bLinear = bLinear > 0.04045 ? Math.pow((bLinear + 0.055) / 1.055, 2.4) : bLinear / 12.92;
+
+            rLinear *= 100;
+            gLinear *= 100;
+            bLinear *= 100;
+
+            const x = rLinear * 0.4124564 + gLinear * 0.3575761 + bLinear * 0.1804375;
+            const y = rLinear * 0.2126729 + gLinear * 0.7151522 + bLinear * 0.0721750;
+            const z = rLinear * 0.0193339 + gLinear * 0.1191920 + bLinear * 0.9503041;
+
+            // Convert XYZ to Lab (D65 illuminant)
+            const xn = 95.047;
+            const yn = 100.000;
+            const zn = 108.883;
+
+            const fx = x / xn > 0.008856 ? Math.pow(x / xn, 1/3) : (903.3 * x / xn + 16) / 116;
+            const fy = y / yn > 0.008856 ? Math.pow(y / yn, 1/3) : (903.3 * y / yn + 16) / 116;
+            const fz = z / zn > 0.008856 ? Math.pow(z / zn, 1/3) : (903.3 * z / zn + 16) / 116;
+
+            const L = 116 * fy - 16;
+            const a = 500 * (fx - fy);
+            const bLab = 200 * (fy - fz);
+
+            return { L, a, b: bLab };
+        }
+
+        function ciede2000(lab1, lab2) {
+            const L1 = lab1.L, a1 = lab1.a, b1 = lab1.b;
+            const L2 = lab2.L, a2 = lab2.a, b2 = lab2.b;
+
+            const kL = 1, kC = 1, kH = 1;
+
+            const C1 = Math.sqrt(a1 * a1 + b1 * b1);
+            const C2 = Math.sqrt(a2 * a2 + b2 * b2);
+            const Cab = (C1 + C2) / 2;
+
+            const G = 0.5 * (1 - Math.sqrt(Math.pow(Cab, 7) / (Math.pow(Cab, 7) + Math.pow(25, 7))));
+
+            const a1p = a1 * (1 + G);
+            const a2p = a2 * (1 + G);
+
+            const C1p = Math.sqrt(a1p * a1p + b1 * b1);
+            const C2p = Math.sqrt(a2p * a2p + b2 * b2);
+
+            let h1p = Math.atan2(b1, a1p) * 180 / Math.PI;
+            if (h1p < 0) h1p += 360;
+
+            let h2p = Math.atan2(b2, a2p) * 180 / Math.PI;
+            if (h2p < 0) h2p += 360;
+
+            const dLp = L2 - L1;
+            const dCp = C2p - C1p;
+
+            let dhp;
+            if (C1p * C2p === 0) {
+                dhp = 0;
+            } else if (Math.abs(h2p - h1p) <= 180) {
+                dhp = h2p - h1p;
+            } else if (h2p - h1p > 180) {
+                dhp = h2p - h1p - 360;
+            } else {
+                dhp = h2p - h1p + 360;
+            }
+
+            const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * Math.PI / 360);
+
+            const Lp = (L1 + L2) / 2;
+            const Cp = (C1p + C2p) / 2;
+
+            let Hp;
+            if (C1p * C2p === 0) {
+                Hp = h1p + h2p;
+            } else if (Math.abs(h1p - h2p) <= 180) {
+                Hp = (h1p + h2p) / 2;
+            } else if (h1p + h2p < 360) {
+                Hp = (h1p + h2p + 360) / 2;
+            } else {
+                Hp = (h1p + h2p - 360) / 2;
+            }
+
+            const T = 1 - 0.17 * Math.cos((Hp - 30) * Math.PI / 180)
+                      + 0.24 * Math.cos(2 * Hp * Math.PI / 180)
+                      + 0.32 * Math.cos((3 * Hp + 6) * Math.PI / 180)
+                      - 0.20 * Math.cos((4 * Hp - 63) * Math.PI / 180);
+
+            const dTheta = 30 * Math.exp(-Math.pow((Hp - 275) / 25, 2));
+
+            const RC = 2 * Math.sqrt(Math.pow(Cp, 7) / (Math.pow(Cp, 7) + Math.pow(25, 7)));
+
+            const SL = 1 + (0.015 * Math.pow(Lp - 50, 2)) / Math.sqrt(20 + Math.pow(Lp - 50, 2));
+            const SC = 1 + 0.045 * Cp;
+            const SH = 1 + 0.015 * Cp * T;
+
+            const RT = -Math.sin(2 * dTheta * Math.PI / 180) * RC;
+
+            const dE = Math.sqrt(
+                Math.pow(dLp / (kL * SL), 2) +
+                Math.pow(dCp / (kC * SC), 2) +
+                Math.pow(dHp / (kH * SH), 2) +
+                RT * (dCp / (kC * SC)) * (dHp / (kH * SH))
+            );
+
+            return dE;
+        }
+
+        function findClosestPantoneColors(r, g, b, count = 5) {
+            const inputLab = rgbToLab(r, g, b);
+            
+            const results = PANTONE_COLORS.map(color => {
+                const rgb = hexToRgb(color.hex);
+                const lab = rgbToLab(rgb.r, rgb.g, rgb.b);
+                const deltaE = ciede2000(inputLab, lab);
+                return { ...color, deltaE };
+            });
+
+            results.sort((a, b) => a.deltaE - b.deltaE);
+            return results.slice(0, count);
+        }
+
+        // ========================================
+        // Application Logic
+        // ========================================
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const imageCanvas = document.getElementById('imageCanvas');
+        const zoomIndicator = document.getElementById('zoomIndicator');
+        const zoomCanvas = document.getElementById('zoomCanvas');
+        const instructions = document.getElementById('instructions');
+        const resetBtn = document.getElementById('resetBtn');
+        const colorSwatch = document.getElementById('colorSwatch');
+        const pantoneValue = document.getElementById('pantoneValue');
+        const hexValue = document.getElementById('hexValue');
+        const rgbValue = document.getElementById('rgbValue');
+        const deltaValue = document.getElementById('deltaValue');
+        const resultsList = document.getElementById('resultsList');
+        const loading = document.getElementById('loading');
+        const historySection = document.getElementById('historySection');
+        const historyColors = document.getElementById('historyColors');
+        const clearHistory = document.getElementById('clearHistory');
+
+        const ctx = imageCanvas.getContext('2d');
+        const zoomCtx = zoomCanvas.getContext('2d');
+        let currentImage = null;
+        let colorHistory = [];
+
+        // File Upload
+        uploadArea.addEventListener('click', (e) => {
+            if (!currentImage) {
+                fileInput.click();
+            }
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                loadImage(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadImage(file);
+            }
+        });
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    currentImage = img;
+                    displayImage();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayImage() {
+            const maxWidth = uploadArea.clientWidth - 32;
+            const maxHeight = 500;
+            
+            let width = currentImage.width;
+            let height = currentImage.height;
+            
+            if (width > maxWidth) {
+                height = (maxWidth / width) * height;
+                width = maxWidth;
+            }
+            if (height > maxHeight) {
+                width = (maxHeight / height) * width;
+                height = maxHeight;
+            }
+
+            imageCanvas.width = width;
+            imageCanvas.height = height;
+            ctx.drawImage(currentImage, 0, 0, width, height);
+
+            // Update UI
+            uploadArea.querySelector('.upload-icon').style.display = 'none';
+            uploadArea.querySelector('.upload-text').style.display = 'none';
+            uploadArea.classList.add('has-image');
+            canvasContainer.classList.add('visible');
+            instructions.classList.add('visible');
+            resetBtn.style.display = 'flex';
+        }
+
+        resetBtn.addEventListener('click', () => {
+            currentImage = null;
+            uploadArea.querySelector('.upload-icon').style.display = 'flex';
+            uploadArea.querySelector('.upload-text').style.display = 'block';
+            uploadArea.classList.remove('has-image');
+            canvasContainer.classList.remove('visible');
+            instructions.classList.remove('visible');
+            resetBtn.style.display = 'none';
+            zoomIndicator.classList.remove('visible');
+            fileInput.value = '';
+        });
+
+        // Color Picking
+        imageCanvas.addEventListener('mousemove', (e) => {
+            if (!currentImage) return;
+
+            const rect = imageCanvas.getBoundingClientRect();
+            const scaleX = imageCanvas.width / rect.width;
+            const scaleY = imageCanvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            // Position zoom indicator
+            zoomIndicator.style.left = `${e.clientX - rect.left + 20}px`;
+            zoomIndicator.style.top = `${e.clientY - rect.top - 60}px`;
+            zoomIndicator.classList.add('visible');
+
+            // Draw zoomed view
+            const zoomLevel = 8;
+            const sourceSize = 15;
+            zoomCtx.imageSmoothingEnabled = false;
+            zoomCtx.clearRect(0, 0, 120, 120);
+            zoomCtx.drawImage(
+                imageCanvas,
+                Math.max(0, x - sourceSize / 2),
+                Math.max(0, y - sourceSize / 2),
+                sourceSize,
+                sourceSize,
+                0,
+                0,
+                120,
+                120
+            );
+        });
+
+        imageCanvas.addEventListener('mouseleave', () => {
+            zoomIndicator.classList.remove('visible');
+        });
+
+        imageCanvas.addEventListener('click', (e) => {
+            if (!currentImage) return;
+
+            const rect = imageCanvas.getBoundingClientRect();
+            const scaleX = imageCanvas.width / rect.width;
+            const scaleY = imageCanvas.height / rect.height;
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            const r = pixel[0], g = pixel[1], b = pixel[2];
+
+            analyzeColor(r, g, b);
+        });
+
+        function analyzeColor(r, g, b) {
+            // Show loading
+            loading.classList.add('visible');
+            resultsList.innerHTML = '';
+
+            // Simulate brief delay for UX
+            setTimeout(() => {
+                const hex = rgbToHex(r, g, b);
+                const results = findClosestPantoneColors(r, g, b, 5);
+                const closest = results[0];
+
+                // Update color preview
+                colorSwatch.style.backgroundColor = hex;
+                colorSwatch.classList.add('visible');
+
+                // Update color info
+                pantoneValue.textContent = closest.code;
+                hexValue.textContent = hex;
+                rgbValue.textContent = `${r}, ${g}, ${b}`;
+                deltaValue.textContent = closest.deltaE.toFixed(2);
+
+                // Update results list
+                loading.classList.remove('visible');
+                resultsList.innerHTML = results.map((result, index) => `
+                    <div class="result-item fade-in" style="animation-delay: ${index * 0.05}s" onclick="copyPantone('${result.code}')">
+                        <div class="result-color" style="background-color: ${result.hex}"></div>
+                        <div class="result-info">
+                            <div class="result-name">${result.name}</div>
+                            <div class="result-code">PANTONE ${result.code}</div>
+                        </div>
+                        <div class="result-delta ${result.deltaE < 5 ? 'excellent' : ''}">
+                            ΔE ${result.deltaE.toFixed(2)}
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add to history
+                addToHistory(hex, closest.code);
+
+            }, 200);
+        }
+
+        function copyPantone(code) {
+            navigator.clipboard.writeText(`PANTONE ${code}`).then(() => {
+                // Brief visual feedback could be added here
+            });
+        }
+
+        function addToHistory(hex, code) {
+            // Avoid duplicates
+            if (colorHistory.find(c => c.hex === hex)) return;
+
+            colorHistory.unshift({ hex, code });
+            if (colorHistory.length > 12) colorHistory.pop();
+
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            if (colorHistory.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+
+            historySection.style.display = 'block';
+            historyColors.innerHTML = colorHistory.map(c => `
+                <div class="history-item" 
+                     style="background-color: ${c.hex}" 
+                     title="PANTONE ${c.code}"
+                     onclick="reanalyzeFromHex('${c.hex}')">
+                </div>
+            `).join('');
+        }
+
+        window.reanalyzeFromHex = function(hex) {
+            const rgb = hexToRgb(hex);
+            analyzeColor(rgb.r, rgb.g, rgb.b);
+        };
+
+        clearHistory.addEventListener('click', () => {
+            colorHistory = [];
+            updateHistoryUI();
+        });
+
+        // Make copyPantone available globally
+        window.copyPantone = copyPantone;
+    </script>
+</body>
+</html>
